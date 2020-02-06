@@ -4,9 +4,7 @@ author: "Professor Adam Kapelner"
 date: "February 4, 2020"
 ---
 
-## More data types
-
-Data which is of class factor can be used in mathematical models that we build just like numeric. It will, by default be reduced to binary variables.
+## Realizations from r.v.'s
 
 Let's now do some probability a la Math 241. Let's realize a few iid random variable models. Let's say $X_1, ..., X_{10} \iid$ ...
 
@@ -18,24 +16,27 @@ Let's now do some probability a la Math 241. Let's realize a few iid random vari
 * normal with mean 5 and standard deviation 2
 
 ```{r}
-num_rvs = 10 #good programming practice to declare shared data
+n = 10 #good programming practice to declare shared data
 
-x = rbinom(num_rvs, size = 5, prob = 0.1)
+x = rbinom(n, size = 5, prob = 0.1)
+dbinom(1, size = 5, p = 0.1)
+pbinom(3, size = 5, p = 0.1)
+qbinom(.75, size = 3, p = 0.1)
 x #returns as a vector
 ?rbinom
-x = rgeom(num_rvs, prob = 0.1)
+x = rgeom(n, prob = 0.1)
 x
 ?rgeom
-x = rpois(num_rvs, lambda = 2)
+x = rpois(n, lambda = 2)
 x
 ?rpois
-x = runif(num_rvs)
+x = runif(n)
 x
 ?runif
-x = rexp(num_rvs, rate = 1)
+x = rexp(n, rate = 1)
 x
 ?rexp
-x = rnorm(num_rvs, mean = 5, sd = 2)
+x = rnorm(n, mean = 5, sd = 2)
 x
 ?rnorm
 ```
@@ -43,11 +44,14 @@ x
 Sorting is also a key skill in R:
 
 ```{r}
-x = rbinom(50, size = 20, prob = 0.2)
+n = 50
+x = rbinom(n, size = 20, prob = 0.2)
 x
 sort(x)
 sort(x, decreasing = TRUE)
 ```
+
+## Matrices
 
 Now that we finished vectors, let's learn about the matrix object. Let's use the dimension of the learning problem in class.
 
@@ -63,11 +67,16 @@ X[1, 1]
 X[1, ] #first row
 class(X[1, ]) #note: not matrix anymore
 X[1, , drop = FALSE]
-class(X[1, , drop = FALSE]) #still matrix... this matters for matrix computations (coming soon)
+class(X[1, , drop = FALSE]) #still matrix... this matters sometimes and we will see an example of it
 X[, 1] #first column
 class(X[, 1]) #note: not matrix anymore
 X[, 1, drop = FALSE]
 class(X[, 1, drop = FALSE])
+#other ways of subsetting matrices
+X[1 : 4, ]
+X[, 2 : 3]
+X[, c(1, 3)]
+X[seq(1, n, by = 2), ]
 ```
 
 A few handy functions for numerical matrices:
@@ -78,9 +87,6 @@ colSums(X)
 rowMeans(X)
 colMeans(X)
 ```
-
-
-
 
 ## Programming! Conditional statements, loops, functions
 
@@ -116,8 +122,9 @@ if (x > 0){
 There is a one line convenience function called ifelse:
 
 ```{r}
-x = 3
-a = ifelse(x > 0, 1, -1)
+x = -10 : 10
+b = -10 : 10
+a = ifelse(x > 0, b, -1)
 a
 x = -5 : 5
 a = ifelse(x > 0, 1, -1)
@@ -129,7 +136,7 @@ a
 There is also a switch in R. It is _not_ an official keyword (despite RStudio's endorsement), but it is useful for non-vector character expressions:
 
 ```{r}
-ch = "one"
+ch = "four"
 # ch = c("one", "two")
 switch(ch,
    "one" = 1,
@@ -151,14 +158,26 @@ for (i in 1 : 10){
 }
 ```
 
-Note that the looping variable i still exists but the variable within the looped expression j does not:
+Note that both the looping variable i still exists and the variable within the looped expression j still exists:
 
 ```{r}
 i
 j
 ```
 
-You can iterate over a vector as well:
+Be careful of scoping in R. You may want to "clean up your namespace" whenever you can.
+
+```{r}
+for (i in 1 : 10){
+  j = i
+  print(j)
+}
+rm(i, j)
+```
+
+There is no need to save the values of the temp variables i, j going forward. They would vanish in C++ / Java when the for loop ended as it goes out of scope.
+
+You can iterate over a vector as well Python-style or Java-generic-style:
 
 ```{r}
 vec = seq(1, 10)
@@ -199,7 +218,7 @@ while (TRUE){
 }
 ```
 
-The "repeat" keyword is the same as the while-true:
+The "repeat" keyword is the same as the while-true. It is slightly more esoteric but still good to know:
 
 ```{r}
 x = 1
@@ -269,9 +288,11 @@ dict #default keys are the numbers 1, 2, ...
 dict[[1]]
 dict = list("a" = "first", "b" = "second", "c" = "third") #key => value
 dict
+dict = list(a = "first", b = "second", c = "third") #key => value
+dict
 ```
 
-Lists conveniently allow all sorts of data types.
+Lists conveniently allow all sorts of data types (as values only).
 
 ```{r}
 varied_dict = list()
@@ -287,6 +308,8 @@ names(varied_dict)
 ```
 
 They have lots of uses in data science applications. We will likely see them in class and if not, you'll definitely see them in the real world. Note that data.frame objects are implemented as lists as well as many other common R objects.
+
+Unfortunately, list can only truly accept characters as keys. If you really need more flexibility here, we will need a library (coming soon).
 
 
 The second is arrays i.e. are multidimensional vectors
@@ -330,9 +353,10 @@ my_function = function(x){
   x
 }
 ##You may be used to:
-#int my_function(int x){ 
+# int my_function(int x){
+#  //something
 #  return x;
-#}
+# }
 ```
 
 * Functions are objects in R. This is why you are actually assigning the function to an object.
@@ -343,6 +367,7 @@ Let's make sure this works:
 
 ```{r}
 my_function(3)
+my_function("asd")
 my_function(x = 3) #you can specify that 3 is the value for argument "x"
 my_function(y = 3) #illegal argument
 ```
@@ -357,11 +382,11 @@ my_function() #default execution
 my_function(p = 0) #one optional argument specified, others defaulted
 my_function(y = -2, q = 0) #two optional arguments specified, others defaulted
 
-my_function = function(x, y = 2, z = 3, p = 4, q = 5, r = 6){
+my_function = function(x = 1, y, z = 3, p = 4, q = 5, r = 6){
   (x + y + z) / (p + q + r)
 }
 my_function() #no dice
-my_function(0) #required argument specified
+my_function(1, 0) #required argument specified
 my_function(0, q = 7) #required argument specified and one optional argument
 rm(my_function) #can be deleted since it's an object
 ```
@@ -387,7 +412,7 @@ nrow(X)
 ncol(X)
 dim(X)
 length(X) #countless bugs!
-c(X) #vectorizes / flattens a matrix (sometimes useful)
+c(X)
 ```
 
 Why should we fill up this matrix with NA's? No technical reason; it is done for a practical reason. Every value is currently "missing" until it's filled in i.e. it will let you know if you didn't fill any of the values.
@@ -440,10 +465,10 @@ A quick sidebar about vectors within matrices with row or column names:
 salaries = X[, 1] 
 salaries #it's a vector with names
 names(salaries) #access to its names
-names(salaries)[3] = "Kapelner"
+names(salaries)[3] = "Adam"
 salaries
 salaries[3]
-salaries["Kapelner"]
+salaries["Adam"]
 sort(salaries)
 #how do we sort salaries by name?
 salaries[order(names(salaries))]
@@ -475,8 +500,8 @@ IQR(X[, "salary"])
 There is also the convenient quantile and inverse quantile function
 
 ```{r}
-quantile(X[, "salary"], probs = 0.5) 
-quantile(X[, "salary"], probs = c(.1, .9))  
+quantile(X[, "salary"], probs = 0.5)
+quantile(X[, "salary"], probs = c(.1, .9))
 inverse_quantile_obj = ecdf(X[, "salary"]) #the "empirical" CDF
 inverse_quantile_obj(50000)
 inverse_quantile_obj(70000)
@@ -529,7 +554,7 @@ X = data.frame(
     prob = c(.50, .40, .08, .02)
   )
 )
-row.names(X) = fake_first_names
+rownames(X) = fake_first_names
 X
 ```
 
@@ -560,7 +585,7 @@ Now that we have two categorical variables, we can do a "cross tab":
 ```{r}
 table(X$has_past_unpaid_loan)
 table(X$past_crime_severity)
-table(X$has_past_unpaid_loan, X$past_crime_severity)
+table(X$has_past_unpaid_loan, X$past_crime_severity) / 100
 #to avoid needing the "X$" over and over, use the convenience "with"
 with(X,
   table(has_past_unpaid_loan, past_crime_severity)
@@ -576,131 +601,3 @@ summary(X) #much better now!
 ```
 
 Conceptually - why does this make no sense at all??? y is independent of X --- what happens then? No function f can ever have any predictive / explanatory power! This is just a silly example to show you the data types. We will work with real data soon. Don't worry.
-
-## Libraries in R
-
-So far we've only made use of "base R". This is the funcionality included from a vanilla installation of R. 
-
-R has a huge worldwide community of contributors. Some contribute to newer version of base R, but most create open-source "R packages" or "libraries". Many libraries come preinstalled. For instance, the MASS library which stands for "Modern Applied Statistics with S" (a famous textbook of R). We can call a function from the MASS library via the following:
-
-```{r}
-MASS::as.fractions(0.99)
-MASS::as.fractions(pi)
-```
-
-Note we cannot just
-
-```{r}
-as.fractions(pi)
-```
-
-We made use of the scope operator "::" to access a namespace beyond the usual "global namespace" which we've been used to. 
-
-If we are using the MASS library a lot, using the scope operator may get annoying. So similar to the "with" command, we can call
-
-```{r}
-library(MASS)
-```
-
-which loads all public methods (aka "exported" functions) into the public namespace. Bonus: you can use the ":::" to access the private / internal functions and variables. Java developers would cringe!
-
-Now, after the library invocation we can do the following and treat it as a normal function:
-
-```{r}
-as.fractions(pi)
-```
-
-The content for the MASS package was sitting on the hard drive since it comes with R. But what if you want to use a package that does not come with R? We'll have to install the package just like pip for Python, Rubygems for Ruby, R has a package management system built in. For example, here's a useful package for time series / finance stuff:
-
-```{r}
-install.packages("tseries")
-```
-
-Note that it knew where to go online - it went to a CRAN mirror. CRAN is the official repository for R packages.
-
-Might as well load it:
-
-```{r}
-library(tseries)
-```
-This is its welcome message.
-
-This library is really cool e.g.
-
-```{r}
-ibm_stock_history = get.hist.quote(instrument = "IBM", start = "2018-01-01", end = "2018-02-01")
-ibm_stock_history
-```
-
-Is this a data frame?
-
-```{r}
-class(ibm_stock_history)
-```
-
-Nope - they made their own data type. We will get there if I choose to do the unit on "writing your own R packages".
-
-Let's say you're sharing your code with someone and one of your lines is loading a library e.g.
-
-```{r}
-library(doParallel)
-```
-
-And my computer doesn't have this library. Then we need to stop what we're doing and install. This could be annoying. Here is a convenience: use the pacman package that installs if necessary:
-
-```{r}
-if (!require("pacman")){install.packages("pacman")} #installs pacman if necessary but does not load it!
-pacman::p_load(devtools) #ensures that devtools gets installed and loaded into the workspace but pacman does not (very tidy)!
-```
-
-It is typical to then have a few lines declaring all packages on top of your R/Rmd script file. Here is an example header from one of my projects:
-
-```{r}
-#if (!require("pacman")){install.packages("pacman")}
-#pacman::p_load(knitr, randomForest, dplyr, tidyverse, doParallel, xtable, pracma, yaml)
-```
-
-I'm going to require this for HW / projects, etc.
-
-The devtools package is important for modern R usage. It allows downloading R packages directly from source that are not even on CRAN. This allows you to get "bleeding edge" features. For example:
-
-```{r}
-install_github("yihui/knitr")
-```
-
-However this doesn't always work!
-
-```{r}
-install_github("hadley/ggplot2")
-```
-
-Why did this fail? Because this computer is not setup for compiling C++. This is one of the big advantages of using Linux and MAC over Windows - Windows just is more buggy when it comes to "real coding" and it gets in the way when you're out there trying to get stuff done.
-
-Note, you can use the pacman library for this type of installation too. So your header becomes:
-
-```{r}
-if (!require("pacman")){install.packages("pacman")}
-pacman::p_load(devtools)
-pacman::p_load_gh("hadley/ggplot2")
-```
-
-
-## Loading datasets from R packages
-
-Since R is a language built for data and statistics, it has a ton of interesting data sets by default and even more that are contained in packages. There is really just one command to know:
-
-```{r}
-rm(list = ls())
-data(iris) #load the iris dataset (as a data frame)
-class(iris)
-#3 things I always do immediately upon getting a dataset
-head(iris)
-str(iris)
-summary(iris)
-```
-
-R has so many datasets. Here they all are by package installed:
-
-```{r}
-data(package = .packages(all.available = TRUE))
-```
