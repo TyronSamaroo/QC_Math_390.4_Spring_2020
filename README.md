@@ -1,57 +1,59 @@
 # MATH 390.4 Intro to Data Science Spring 2020
 
-This is the course homepage for Math 390.4 (and Masters level 650.3) at Queens College, City University of New York taught by Professor Adam Kapelner. The course syllabus can be found [here](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/syllabus/syllabus.pdf).
+This is the course homepage for Math 390.4 (and Masters level 650.3) at Queens College, City University of New York taught by Professor Adam Kapelner. The course syllabus can be found [here](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/syllabus/syllabus.pdf). We are now using [slack](https://qcmath342.slack.com/) for class discussions and vidoes.
 
 ## Lectures
 
 My lectures can be listened to as youtube tracks and lecture notes are also scanned in as PDF files contributed by students and myself.
 
 <!-- 
-* Lecture 26 [(audio)](https://youtu.be/)
+* Lecture 26 [(video)](https://app.slack.com/client/TVD92E9RR/browse-files/files/F010DUWDE4U)
   - [Practice Notes](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/practice_lectures/lec14.Rmd)
   - Theory Notes [(Prof)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/lectures/lec26kap.pdf)
-* Lecture 25 [(audio)](https://youtu.be/)
+* Lecture 25 [(video)](https://app.slack.com/client/TVD92E9RR/browse-files/files/F010DUWDE4U)
   - Theory Notes [(Prof)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/lectures/lec25kap.pdf)
-* Lecture 24 [(audio)](https://youtu.be/)
+* Lecture 24 [(video)](https://app.slack.com/client/TVD92E9RR/browse-files/files/F010DUWDE4U)
   - [Practice Notes](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/practice_lectures/lec13.Rmd) 
   - Theory Notes [(Prof)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/lectures/lec24kap.pdf) 
-* Lecture 23 [(audio)](https://youtu.be/)
+* Lecture 23 [(video)](https://app.slack.com/client/TVD92E9RR/browse-files/files/F010DUWDE4U)
   - Theory Notes [(Prof)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/lectures/lec23kap.pdf)
-* Lecture 22 [(audio)](https://youtu.be/)
+* Lecture 22 [(video)](https://app.slack.com/client/TVD92E9RR/browse-files/files/F010DUWDE4U)
   - [Practice Notes](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/practice_lectures/lec12.Rmd)
   - Theory Notes [(Jan Bazant)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/lectures/lec22bazant.pdf) [(Prof)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/lectures/lec22kap.pdf)
-* Lecture 21 [(audio)](https://youtu.be/) 
+* Lecture 21 [(video)](https://app.slack.com/client/TVD92E9RR/browse-files/files/F010DUWDE4U)
   - Theory Notes [(Jan Bazant)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/lectures/lec21bazant.pdf) [(Prof)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/lectures/lec21kap.pdf)
 * Lecture 20
   - [Practice Notes](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/practice_lectures/lec11.Rmd) 
   - Theory Notes [(Prof)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/lectures/lec20kap.pdf)
-* Lecture 19 [(audio)](https://youtu.be/)
+* Lecture 19 [(video)](https://app.slack.com/client/TVD92E9RR/browse-files/files/F010DUWDE4U)
   - [Practice Notes](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/practice_lectures/lec10.Rmd) 
   - Theory Notes [(Prof)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/lectures/lec19kap.pdf)
-* Lecture 18 [(audio)](https://youtu.be/)
+* Lecture 18 [(video)](https://app.slack.com/client/TVD92E9RR/browse-files/files/F010DUWDE4U)
   - Theory Notes [(Prof)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/lectures/lec18kap.pdf)
-* Lecture 17 [(audio)](https://youtu.be/)
+* Lecture 17 [(video)](https://app.slack.com/client/TVD92E9RR/browse-files/files/F010DUWDE4U)
   - Theory Notes [(Prof)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/lectures/lec17kap.pdf)
-* Lecture 16 [(audio)](https://youtu.be/)
+* Lecture 16 [(video)](https://app.slack.com/client/TVD92E9RR/browse-files/files/F010DUWDE4U)
   - [Practice Notes](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/practice_lectures/lec09.Rmd) 
-  - Theory Notes [(Prof)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/lectures/lec16kap.pdf)
-* Lecture 15 [(audio)](https://youtu.be/)
-* Lecture 14 [(audio)](https://youtu.be/)
-  - [Practice Notes](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/practice_lectures/lec08.Rmd) 
-* Lecture 13 [(audio)](https://youtu.be/)
+  - Theory Notes [(Prof)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/lectures/lec16kap.pdf)-->
+* Lecture 15 [(video)](https://app.slack.com/client/TVD92E9RR/browse-files/files/F010DUWDE4U)
+  - [Practice Notes](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/practice_lectures/lec09.Rmd) 
+  - Theory Notes [(Prof)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/lectures/lec15kap.pdf)
+* Lecture 14 [(video)](https://app.slack.com/client/TVD8N4FTM/browse-files/files/F010DUWDE4U)
+  - [Practice Notes](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/practice_lectures/lec08.Rmd)
+* Lecture 13 [(video)](https://app.slack.com/client/TVD8N4FTM/browse-files/files/F010DUWDE4U)
   - [Practice Notes](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/practice_lectures/lec07.Rmd)
-  - Theory Notes [(Prof)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/lectures/lec13kap.pdf) -->
-* Lecture 12 [(audio)](https://youtu.be/)
+  - Theory Notes [(Prof)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/lectures/lec13kap.pdf) [(Steven Grgas)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/lectures/lec13grgas.pdf)
+* Lecture 12 [(audio)](https://youtu.be/nwOlnK1VE00)
   - [Practice Notes](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/practice_lectures/lec06.Rmd) 
-  - Theory Notes
-* Lecture 11 [(audio)](https://youtu.be/)
-  - Theory Notes
-* Lecture 10 [(audio)](https://youtu.be/)
+  - Theory Notes [(Nabila Ahmed)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/lectures/lec12ahmed.pdf) [(Christella Nissanthan)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/lectures/lec12nissanthan.pdf)
+* Lecture 11 [(audio)](https://youtu.be/feuRfBxttmk)
+  - Theory Notes [(Christella Nissanthan)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/lectures/lec11nissanthan.pdf)
+* Lecture 10 [(audio)](https://youtu.be/bK8pP0dFZZc)
   - [Practice Notes](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/practice_lectures/lec05.Rmd) 
-  - Theory Notes [(Jonathan Eng)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/lectures/lec10eng.pdf)
-* Lecture 9 [(audio)](https://youtu.be/)
-  - Theory Notes [(Jonathan Eng)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/lectures/lec09eng.pdf)
-* Lecture 8 [(audio)](https://youtu.be/) 
+  - Theory Notes [(Jonathan Eng)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/lectures/lec10eng.pdf) [(Christella Nissanthan)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/lectures/lec10nissanthan.pdf)
+* Lecture 9 [(audio)](https://youtu.be/xRs2vQFlxGQ)
+  - Theory Notes [(Jonathan Eng)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/lectures/lec09eng.pdf) [(Christella Nissanthan)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/lectures/lec09nissanthan.pdf)
+* Lecture 8 [(audio)](https://youtu.be/BYtJhksHKuk) 
   - Theory Notes [(Christella Nissanthan)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/lectures/lec08nissanthan.pdf) [(Shakif Shadman)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/lectures/lec08shadman.pdf) [(Rameasa Arna)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/lectures/lec08arna.pdf) [(Jonathan Eng)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/lectures/lec08eng.pdf)
 * Lecture 7 [(audio)](https://youtu.be/VwDSYOSSlak)
   - [Practice Notes](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/practice_lectures/lec04.Rmd) 
@@ -79,7 +81,7 @@ My lectures can be listened to as youtube tracks and lecture notes are also scan
 * [(Lab 9, due 4/14)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/labs/lab09.Rmd)
 * [(Lab 8, due 4/07)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/labs/lab08.Rmd)
 * [(Lab 7, due 3/31)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/labs/lab07.Rmd)-->
-* [(Lab 6, due 3/18)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/labs/lab06.Rmd)
+* [(Lab 6, due 3/21)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/labs/lab06.Rmd)
 * [(Lab 5, due 3/7)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/labs/lab05.Rmd)
 * [(Lab 4, due 2/29)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/labs/lab04.Rmd)
 * [(Lab 3, due 2/22)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/labs/lab03.Rmd)
@@ -89,10 +91,10 @@ My lectures can be listened to as youtube tracks and lecture notes are also scan
 ## Theory Homeworks
 
 <!--
-* Homework 6t [(download)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/homeworks/hw05/hw05t.pdf?raw=true) [(view)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/homeworks/hw05/hw05t.pdf) (due 5/18)
-* Homework 5t [(download)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/homeworks/hw05/hw05t.pdf?raw=true) [(view)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/homeworks/hw05/hw05t.pdf) (due 4/18)
-* Homework 4t [(download)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/homeworks/hw04/hw04t.pdf?raw=true) [(view)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/homeworks/hw04/hw04t.pdf) (due 4/7)-->
-* Homework 3 [(download)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/homeworks/hw03/hw03t.pdf?raw=true) [(view)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/homeworks/hw03/hw03t.pdf) (due 3/13)
+* Homework 6 [(download)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/homeworks/hw05/hw05t.pdf?raw=true) [(view)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/homeworks/hw05/hw05t.pdf) (due 5/18)
+* Homework 5 [(download)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/homeworks/hw05/hw05t.pdf?raw=true) [(view)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/homeworks/hw05/hw05t.pdf) (due 4/18)
+* Homework 4 [(download)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/homeworks/hw04/hw04t.pdf?raw=true) [(view)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/homeworks/hw04/hw04t.pdf) (due 4/7)-->
+* Homework 3 [(download)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/homeworks/hw03/hw03t.pdf?raw=true) [(view)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/homeworks/hw03/hw03t.pdf) (due 3/18)
 * Homework 2 [(download)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/homeworks/hw02/hw02t.pdf?raw=true) [(view)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/homeworks/hw02/hw02t.pdf) (due 2/24)
 * Homework 1 [(download)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/homeworks/hw01/hw01t.pdf?raw=true) [(view)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/homeworks/hw01/hw01t.pdf) (due 2/11)
 * Homework 0 [(syllabus, page 7)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/syllabus/syllabus.pdf?raw=true) (due 1/31)
@@ -100,13 +102,13 @@ My lectures can be listened to as youtube tracks and lecture notes are also scan
 ## Writing Assignments
 <!--
 * Final Project [(download)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/writing_assignments/final_project.pdf?raw=true) [(view)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/writing_assignments/final_project.pdf) (due 5/23 by email)-->
-* Modeling Essay [(download)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/writing_assignments/modeling_essay.pdf?raw=true) [(view)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/writing_assignments/modeling_essay.pdf) (due 3/30) [(example essay)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/writing_assignments/modeling_essay_example.pdf)
+* Modeling Essay [(download)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/writing_assignments/modeling_essay.pdf?raw=true) [(view)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/writing_assignments/modeling_essay.pdf) (due 4/6) [(example essay)](https://github.com/kapelner/QC_Math_390.4_Spring_2020/blob/master/writing_assignments/modeling_essay_example.pdf)
 
 
 ## Exams
 
-* Midterm I is Thurs, Mar 12 (in class). 
-* Midterm II is Tues, May 12 (in class).
+* Midterm I is Thurs, Mar 26 (in "class"). 
+* Midterm II is Tues, May 12 (in "class").
 
 
 ## Practice Exams
@@ -126,15 +128,14 @@ My lectures can be listened to as youtube tracks and lecture notes are also scan
 
 I *want* you to come to office hours! My office hours are:
 
-Time: Tues/Thurs 10:30-11AM\
-Location: Kiely Hall 283 (the classroom)\
-Time: Friday, 10:50-11:20AM (except April 17)\
-Location: Kiely Hall 061
+Time: Tues/Thurs 11:10-11:40AM\
+Time: Friday, 11AM-noon (except April 17)\
+Location: on Zoom\
 
-In addition, the TA, Moshe Weiss will hold office hours as well:
+<!--In addition, the TA, Moshe Weiss will hold office hours as well:
 
 Time: Wed 2-3PM\
-Location: Kiely Hall 5th floor math lounge
+Location: Kiely Hall 5th floor math lounge-->
 
 ## Grades and Class Standing
 

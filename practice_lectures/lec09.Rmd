@@ -1,263 +1,154 @@
 ---
 title: "Practice Lecture 9 MATH 390.4 Queens College"
 author: "Professor Adam Kapelner"
-date: "April 2, 2019"
+date: "March 24, 2020"
 ---
 
-## Dplyr
+# Log transformations
 
-Now that we know piping, we can start adding some nice functions that manipulate data frames. Let's look at the diamonds dataset and load the dplyr library.
-
-```{r}
-data(diamonds, package = "ggplot2")
-pacman::p_load(dplyr)
-```
-
-Let's remind ourselves of the dataset:
+We will be examining the diamonds dataset.
 
 ```{r}
-str(diamonds)
-summary(diamonds)
+pacman::p_load(ggplot2) #this loads the diamonds data set too
+?diamonds
+dim(diamonds)
 ```
 
-The package `dplyr` offers many conveninent functions to manipulate, clean, put together data frames (AKA "munging", "wrangling"). It works really nicely with the piping chain as you "begin" the manipulation with the dataset and then iteratively do step 1, step 2, etc until you wind up with what end product you would like.
-
-Beginning with the most obvious, `rename` will rename a column
-
-```{r}
-diamonds %>% 
-  rename(weight = carat)
-```
-
-
-The `select` function selects columns in the order you ask it to.
-
-```{r}
-diamonds %>% 
-  select(cut, carat, price) #these three only in this order
-diamonds %>% 
-  select(carat, price, cut) #these three only
-diamonds %>% 
-  select(-c(x, y, z)) #leave out these three
-diamonds %>% 
-  select(-x, -y, -z) #leave out these three
-```
-
-If you want to rearrange the columns, you pretend to select a subset and then ask for everything else:
-
-```{r}
-diamonds %>% 
-  select(carat, price, cut, everything()) #these three in this order first then everything else
-diamonds %>% 
-  select(-carat, everything()) #move carat last (first drop it, and then add it back in with everything)
-```
-
-
-The `arrange` method sorts the rows:
-
-```{r}
-diamonds %>%
-  arrange(carat) #default is ascending i.e. lowest first
-diamonds %>%
-  arrange(desc(carat)) #switch to descending, i.e. highest first
-diamonds %>%
-  arrange(desc(color), desc(clarity), desc(cut), desc(carat)) #multiple sorts - very powerful
-```
-
-
-
-The filter method subsets the data based on conditions:
-
-```{r}
-diamonds %>%
-  filter(cut == "Ideal")
-diamonds %>%
-  filter(cut == "Ideal") %>%
-  filter(depth < 65)
-diamonds %>%
-  filter(cut == "Ideal") %>%
-  filter(depth < 65) %>%
-  filter(x * y * z > 20)
-diamonds %>%
-  filter(cut == "Ideal" & depth < 65 & x * y * z > 20)
-diamonds %>%
-  filter((cut == "Ideal" | cut == "Premium") & depth < 65 & x * y * z > 20)
-diamonds %>%
-  filter(cut %in% c("Ideal", "Premium") & depth < 65 & x * y * z > 20)
-```
-
-How about removing all rows that are the same?
-
-```{r}
-diamonds
-diamonds %>%
-  distinct
-unique(diamonds$carat) #there's only a few weight measurements that are possible...
-diamonds %>%
-  distinct(carat, .keep_all = TRUE) #keeps the first row for each unique weight measurement
-```
-
-Sampling is easy
-
-```{r}
-diamonds %>%
-  sample_n(20)
-0.0005 * nrow(diamonds)
-diamonds %>%
-  sample_frac(0.0005)
-diamonds %>%
-  slice(5000 : 5009)
-```
-
-There are many ways to reshape a dataset. We will see two now and a few functions later when it becomes important. For instance: we can collapse columns together using the `unite` function from package `tidyr`.
-
-```{r}
-pacman::p_load(tidyr)
-diamonds2 = diamonds %>%
-  unite(dimensions, x, y, z, sep = " x ")
-diamonds2
-```
-
-We can reverse this operation by separating them out using `separate`:
-
-```{r}
-diamonds2 %>%
-  separate(dimensions, c("x", "y", "z"), sep = " x ")
-```
-
-Now for some real fun stuff. Let's create new features with the `mutate` function.
-
-```{r}
-diamonds %>%
-  mutate(volume = x * y * z) #adds a new column keeping the old ones (this was our exam problem)
-diamonds %>%
-  mutate(price_per_carat = price / carat) %>%
-  arrange(desc(price_per_carat))
-```
-
-Or rewrite old ones.
-
-```{r}
-diamonds %>%
-  mutate(cut = substr(cut, 1, 1))
-diamonds %>%
-  mutate(carat = factor(carat))
-```
-
-Here are some more ways to create new variables:
-
-```{r}
-diamonds %>%
-  mutate(carat = factor(ntile(carat, 5)))
-diamonds %>%
-  mutate(carat = percent_rank(carat))
-diamonds %>%
-  mutate(lag_price = lag(price)) #if this data was a time series
-diamonds %>%
-  mutate(cumul_price = cumsum(price)) #%>% tail
-```
-
-There are tons of package to do clever things. For instance, here's one that does dummies:
-
-```{r}
-pacman::p_load(sjmisc, snakecase)
-diamonds %>%
-  to_dummy(color, suffix = "label") %>% #this creates all the dummies
-  bind_cols(diamonds) %>% #now we have to add all the data back in
-  select(-matches("_"), everything()) %>% #this puts the dummies last
-  select(-color) #finally we can drop color
-diamonds %>% #convert all to dummies
-  select(color, cut, clarity) %>%
-  to_dummy(suffix = "label")
-```
-
-
-What if you want to create a new variable based on functions only run on subsets of the data. This is called "grouping".
-
-For instance:
-
-```{r}
-diamonds %>%
-  group_by(color) #nothing happened... this just is a directive to dplyr to do things a bit differently now
-diamonds %>%
-  group_by(color) %>%
-  mutate(price_rank_within_color = dense_rank(price)) #creates a new feature based on running the feature only within group
-diamonds %>%
-  group_by(color) %>%
-  mutate(avg_price_for_color = mean(price)) #creates a new feature based on running the feature only within group
-```
-
-How do you summarize data within group?
-
-```{r}
-diamonds %>%
-  group_by(color) %>%
-  summarize(avg_price = mean(price)) #where did all the other columns go???
-diamonds %>%
-  group_by(color) %>%
-  summarize(avg_price = mean(price), sd_price = sd(price), count = n()) #where did all the other columns go???
-diamonds %>%
-  group_by(color) %>%
-  summarize(avg_price = mean(price), avg_carat = mean(carat)) #where did all the other columns go???
-diamonds %>%
-  group_by(color) %>%
-  summarize(min_price = min(price), med_price = median(price), max_price = max(price))
-```
-
-Putting it all together: ususally you're doing this manipulation get the dataset you want. Usually you're editing the dataset for real. Let's make a copy first:
-
-```{r}
-diamonds2 = diamonds
-```
-
-We first note that if we want to overwrite we can do:
-
-```{r}
-diamonds2 = diamonds2 %>%
-  select(-x, -y, -z) %>%
-  filter(carat < 0.5)
-```
-
-Or we can use a mutate operation that reads and writes simultaneously:
-
-```{r}
-pacman::p_load(magrittr)
-diamonds2 = diamonds
-diamonds2 %<>%
-  select(-x, -y, -z) %>%
-  filter(carat < 0.5) %>%
-  arrange(carat, cut, color)
-diamonds2
-```
-
-This is as far as we can go with dplyr right now given that this dataset doesn't have datetime information, some duplication among rows, missing data and given that there's not multiple dataframes. We will return to dplyr under these situations in the future.
-
-
-
-
-# Linear Models with Interaction Terms
+That's a huge $n$. So, let's expect things to take a bit longer when processing.
 
 A natural increasing relationship will likely be found between weight and price. Let's see it visually:
 
 ```{r}
-base = ggplot(diamonds, aes(x = carat, y = price))
-base + geom_point()
+ggplot(diamonds, aes(x = carat, y = price)) + 
+  geom_point()
 ```
 
-Let's see a best guess linear relationship:
+
+How good does a best guess linear relationship do?
 
 ```{r}
 mod = lm(price ~ carat, diamonds)
 b = coef(mod)
+b
 summary(mod)$r.squared
 summary(mod)$sigma
-base + geom_point() + geom_abline(intercept = b[1], slope = b[2], col = "green")
 ```
 
-Let us add a third variable to this plot, color, a metric about the "yellowness" of the diamond. This is an ordinal categorical variable ranging from D (most clear i.e. best) to J (most yellow in this dataset i.e. worst).
+What does the intercept say about extrapolation?
+
+Let's see the best fit line $g(x)$ visually:
+
+```{r}
+ggplot(diamonds, aes(x = carat, y = price)) + geom_point() + 
+  geom_abline(intercept = b[1], slope = b[2], col = "green")
+```
+
+Maybe the relationship between weight and price is not linear - but exponential? E.g. if the weight of a diamond doubles, maybe the price quadruples? Or linear increases in weight yield percentage increases in price. This seems plausible. Let's give it a whirl. Maybe we'll even learn something about diamonds.
+
+The way to create such a model is to simply fit an OLS model to log y. This is called a log-linear model.
+
+Since this is a pretty standard thing to do so R's formula notation has it built-in as follows:
+
+```{r}
+log_linear_mod = lm(log(price) ~ carat, diamonds)
+b = coef(log_linear_mod)
+b
+```
+
+Let's see what this looks like.
+
+```{r}
+ggplot(diamonds, aes(x = carat, y = log(price))) + 
+  geom_point() + 
+  geom_abline(intercept = b[1], slope = b[2], col = "green")
+```
+
+It looks very bad if carat is large. That means our little theory about carats getting larger yielding multiples of price doesn't correspond to reality.
+
+How did we do?
+
+```{r}
+summary(log_linear_mod)$r.squared
+summary(log_linear_mod)$sigma
+```
+
+This doesn't seem to help $R^2$ too much. We will discuss what this means in a later class. But look at that RMSE! That dropped like a rock! Is that real?
+
+Let's attempt to compare apples-apples.
+
+```{r}
+log_y_hat = log_linear_mod$fitted.values
+y_hat = exp(log_y_hat)
+e = diamonds$price - y_hat
+SSE = sum(e^2)
+SST = sum((diamonds$price - mean(diamonds$price))^2)
+Rsq = 1 - sum(e^2) / SST
+Rsq
+RMSE = sqrt(SSE / (nrow(diamonds) - 2))
+RMSE
+```
+
+What does this mean? It means this was a bad idea. Those residuals for carat large are insanely large. They're wrong on a log scale! Which means they're off by orders of magnitude. Working with logged y is dangerous business if you're wrong! Before you were off by a few thousand dollars; now you're off by millions. For example. Let's look at a large diamond:
+
+```{r}
+xstar = diamonds[diamonds$carat > 5, ][1, ]
+xstar$price
+predict(mod, xstar)
+exp(predict(log_linear_mod, xstar))
+```
+
+That's a pretty bad residual!
+
+How about log-log model? 
+
+```{r}
+log_log_linear_mod = lm(log(price) ~ log(carat), diamonds)
+b = coef(log_log_linear_mod)
+b
+```
+
+Let's see what it looks like:
+
+```{r}
+ggplot(diamonds, aes(x = log(carat), y = log(price))) + 
+  geom_point() + 
+  geom_abline(intercept = b[1], slope = b[2], col = "green")
+```
+
+Well look at that! That's a nice looking model.
+
+How are our metrics?
+
+```{r}
+summary(log_log_linear_mod)$r.squared
+summary(log_log_linear_mod)$sigma
+```
+
+Better $R^2$. Not that this mattered! Let's see apples-to-apples.
+
+```{r}
+log_y_hat = log_log_linear_mod$fitted.values
+y_hat = exp(log_y_hat)
+e = diamonds$price - y_hat
+SSE = sum(e^2)
+Rsq = 1 - sum(e^2) / SST
+Rsq
+RMSE = sqrt(SSE / (nrow(diamonds) - 2))
+RMSE
+```
+
+This is on-par with the OLS model, but still doesn't "beat it". There are reasons why you would use this model, but they are beyond the scope of this class - they belong in Econ 382.
+
+How about an example where a log model actually does clearly better. Let's wait until we do dplyr first.
+
+
+# Linear Models with Feature Interactions
+
+Let's go back to modeling price with weight. Let us add a third variable to this plot, color, a metric about the "yellowness" of the diamond. This is an ordinal categorical variable ranging from D (most clear i.e. best) to J (most yellow in this dataset i.e. worst).
 
 
 ```{r}
+base = ggplot(diamonds, aes(x = carat, y = price)) 
 base +
   geom_point(aes(col = color)) + scale_color_brewer(type = "div")
 ```
@@ -292,6 +183,8 @@ This indicates a separate intercept and carat-slope for each color. How is this 
 ```{r}
 mod = lm(price ~ carat * color, diamonds)
 coef(mod) #beware: sometimes strange naming conventions on the interaction terms but seems to work here fine
+b_D
+b_J ####FIX that!!
 ```
 
 The reference category is color D. This means every other color should start lower and have a lower slope. This is about what we see above.
@@ -341,7 +234,7 @@ How about cut?
 
 ```{r}
 ggplot(diamonds, aes(x = carat, y = price)) +
-  geom_point(aes(col = cut), lwd = 0.5)
+  geom_point(aes(col = cut), lwd = 0.5) + scale_color_brewer(type = "div")
 ```
 
 Likely something here.
@@ -375,9 +268,8 @@ A decent gain once again.
 What does the design matrix look like there? What is $p$?
 
 ```{r}
-diamonds %>%
-  model.matrix(price ~ carat * (color + depth + cut), data = .) %>% #note diamonds is not the first argument of `model.matrix` so I use the dot to pass in diamonds in the appropriate position
-  head #you can see the strange naming convention here on cut for some reasons ... can't quite figure this out
+Xmm = model.matrix(price ~ carat * (color + depth + cut), diamonds)
+head(Xmm) #you can see the strange naming convention here on cut for some reasons ... can't quite figure this out
 ```
 
 
@@ -409,3 +301,61 @@ mod = lm(price ~ color + cut, diamonds)
 summary(mod)$r.squared
 summary(mod)$sigma
 ```
+
+
+## Piping
+
+Take a look at this one-liner:
+
+```{r}
+set.seed(1984)
+mean(head(round(sample(rnorm(1000)), digits = 2)))
+```
+
+This is hard to read. Of course we can make it easier by using breaklines e.g.
+
+```{r}
+mean(
+  head(
+    round(
+      sample(
+        rnorm(1000)
+      ), digits = 2)
+    )
+)
+```
+
+But it doesn't make it much easier to read. And it probably makes it harder to write.
+
+Enter an idea taken from unix / linux. Output of one function is input to next function. It is the inverse of the usual "order of operations". Let's see how this works.
+
+We first load the piping library:
+
+```{r}
+pacman::p_load(magrittr) #the package is named after Rene Magritte, the artist
+```
+
+In pipe format this would look like:
+
+```{r}
+set.seed(1984)
+rnorm(1000) %>% #the pipe operator
+  sample %>% 
+  round(digits = 2) %>% #the first argument is passed in automatically.
+  head %>%
+  mean
+```
+
+That's it! There's nothing more to it other than a gain in readability.
+
+What if we wanted to do something like `mean(rnorm(1000) + 1)`? This `rnorm(1000) %>% +1 %>% mean` doesn't work because I imagine because the basic arithmetic operators couldn't be parsed like normal while there was a pipe. So they invented special pipe functions for this:
+
+```{r}
+rnorm(1000) %>% add(1) %>% mean
+```
+
+There are other exceptions to the rule too which you'll figure out if you adopt the pipe.
+
+Unfortunately... the world at large hasn't completely accepted this as a way to write R. So feel free to use for yourself. But be carefuly when using this style with others. 
+
+Also note the code you write with pipes will be slower than the normal syntax.
