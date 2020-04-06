@@ -1,869 +1,401 @@
 ---
 title: "Practice Lecture 10 MATH 390.4 Queens College"
 author: "Professor Adam Kapelner"
-date: "March 31, 2020"
+date: "April 2, 2020"
 ---
 
-## Data "Munging" with Dplyr
+## The K tradeoff
 
-"Data munging", sometimes referred to as "data wrangling", is the process of transforming and mapping data from one "raw" data form into another format with the intent of making it more appropriate and valuable for a variety of downstream purposes such as analytics. A data wrangler is a person who performs these transformation operations. -[Wikipedia](https://en.wikipedia.org/wiki/Data_wrangling)
-
-Half of what a data scientist does is cleaning data, visualizing data and wrangling it. In the process you learn all about your dataset and you're on a higher level when it comes time to build prediction models.
-
-The package `dplyr` offers many conveninent functions to manipulate, clean, and otherwise wrangle data. It works really nicely with the piping chain as you "begin" the manipulation with the dataset and then iteratively pipe in step 1, step 2, etc until you wind up with what end product you would like. Its competitor is `data.table` which we will do in a future class but the general idea is the same.
+K determines how large the training set is relative to the test set when you're doing honest validation for an algorithm. Let's simulate this. Imagine this dataset:
 
 ```{r}
-pacman::p_load(ggplot2, dplyr, magrittr)
+n = 50
+xmin = 0
+xmax = 4
+set.seed(1984)
+x = runif(n, xmin, xmax)
+y = 2 + 3 * x^2 + rnorm(n, 0, 0.8)
+D = data.frame(x = x, y = y)
+pacman::p_load(ggplot2)
+data_plot = ggplot(D) + aes(x = x, y = y) + geom_point()
+data_plot
 ```
 
-Beginning with the most obvious, `rename` will rename a column
+Note how $f(x)$ is quadratic and there is random noise which is "ignorance error". The random noise will be part of generalization error and can never go away.
+
+If we use OLS with no derived features, then we can at most get $h*(x)$. Let's see what $h^*(x) = \beta_0 + \beta_1 x$ truly is. To do this, we imagine we see an absolute ton of data and run OLS on it.
 
 ```{r}
-diamonds %>% 
-  rename(weight = carat)
+n_hidden = 1e6
+x_hidden = seq(from = xmin, to = xmax, length.out = n_hidden)
+y_hidden = 2 + 3 * x_hidden^2 + rnorm(n_hidden, 0, 0.8)
+h_star_mod = lm(y_hidden ~ x_hidden)
+coef(h_star_mod)
 ```
 
+I think $\beta = [6~12]^\top$ can actually be solved with calculus. Let gen_err = $\int_0^4 ((2 + 3x^2) - (b_0 + b_1 x))^2 dx$ and solve for $b0$ and $b1$ explicitly by minimizing.
 
-The `select` function selects columns in the order you ask it to.
+Plotting that over $\mathbb{D}$ we obtain
 
 ```{r}
-diamonds %>% 
-  select(cut, carat, price) #these three only in this order
-diamonds %>% 
-  select(carat, price, cut) #these three only
-diamonds %>% 
-  select(-c(x, y, z)) #leave out these three
-diamonds %>% 
-  select(-x, -y, -z) #leave out these three
+data_plot +
+  geom_abline(intercept = coef(h_star_mod)[1], slope = coef(h_star_mod)[2], color = "green")
 ```
 
-If you want to rearrange the columns, you pretend to select a subset and then ask for everything else:
+That is the best we're going to get. However, $g_{final}$ falls far short of it:
 
 ```{r}
-diamonds %>% 
-  select(carat, price, cut, everything()) #these three in this order first then everything else
-diamonds %>% 
-  select(-carat, everything()) #move carat last (first drop it, and then add it back in with everything)
+g_final_mod = lm(y ~ x)
+coef(g_final_mod)
 ```
 
-
-The `arrange` method sorts the rows:
-
-```{r}
-diamonds %>%
-  arrange(carat) #default is ascending i.e. lowest first
-diamonds %>%
-  arrange(desc(carat)) #switch to descending, i.e. highest first
-diamonds %>%
-  arrange(desc(color), desc(clarity), desc(cut), desc(carat)) #multiple sorts - very powerful
-```
-
-
-
-The filter method subsets the data based on conditions:
+On the plot that can be seen as
 
 ```{r}
-diamonds %>%
-  filter(cut == "Ideal")
-diamonds %>%
-  filter(cut == "Ideal") %>%
-  filter(depth < 65)
-diamonds %>%
-  filter(cut == "Ideal") %>%
-  filter(depth < 65) %>%
-  filter(x * y * z > 20)
-diamonds %>%
-  filter(cut == "Ideal" & depth < 65 & x * y * z > 20)
-diamonds %>%
-  filter((cut == "Ideal" | cut == "Premium") & depth < 65 & x * y * z > 20)
-diamonds %>%
-  filter(cut %in% c("Ideal", "Premium") & depth < 65 & x * y * z > 20)
-```
-
-How about removing all rows that are the same?
-
-```{r}
-diamonds
-diamonds %>%
-  distinct
-unique(diamonds$carat) #there's only a few weight measurements that are possible...
-diamonds %>%
-  distinct(carat, .keep_all = TRUE) #keeps the first row for each unique weight measurement
-```
-
-Sampling is easy
-
-```{r}
-diamonds %>%
-  sample_n(20)
-0.0005 * nrow(diamonds)
-diamonds %>%
-  sample_frac(0.0005)
-diamonds %>%
-  slice(5000 : 5009)
-```
-
-There are many ways to reshape a dataset. We will see two now and a few functions later when it becomes important. For instance: we can collapse columns together using the `unite` function from package `tidyr`.
-
-```{r}
-pacman::p_load(tidyr)
-diamonds2 = diamonds %>%
-  unite(dimensions, x, y, z, sep = " x ")
-diamonds2
-```
-
-We can reverse this operation by separating them out using `separate`:
-
-```{r}
-diamonds2 %>%
-  separate(dimensions, c("x", "y", "z"), sep = " x ")
-```
-
-Now for some real fun stuff. Let's create new features with the `mutate` function.
-
-```{r}
-diamonds %>%
-  mutate(volume = x * y * z) #adds a new column keeping the old ones (this was our exam problem)
-diamonds %>%
-  mutate(price_per_carat = price / carat) %>%
-  arrange(desc(price_per_carat))
-```
-
-Or rewrite old ones.
-
-```{r}
-diamonds %>%
-  mutate(cut = substr(cut, 1, 1))
-diamonds %>%
-  mutate(carat = factor(carat))
-```
-
-Here are some more ways to create new variables:
-
-```{r}
-diamonds %>%
-  mutate(carat = factor(ntile(carat, 5)))
-diamonds %>%
-  mutate(carat = percent_rank(carat))
-diamonds %>%
-  mutate(lag_price = lag(price)) #if this data was a time series
-diamonds %>%
-  mutate(cumul_price = cumsum(price)) #%>% tail
-```
-
-There are tons of package to do clever things. For instance, here's one that does dummies:
-
-```{r}
-pacman::p_load(sjmisc, snakecase)
-diamonds %>%
-  to_dummy(color, suffix = "label") %>% #this creates all the dummies
-  bind_cols(diamonds) %>% #now we have to add all the data back in
-  select(-matches("_"), everything()) %>% #this puts the dummies last
-  select(-color) #finally we can drop color
-diamonds %>% #convert all to dummies
-  select(color, cut, clarity) %>%
-  to_dummy(suffix = "label")
+data_plot +
+  geom_abline(intercept = coef(h_star_mod)[1], slope = coef(h_star_mod)[2], color = "green") +
+  geom_abline(intercept = coef(g_final_mod)[1], slope = coef(g_final_mod)[2], color = "blue")
 ```
 
 
-What if you want to create a new variable based on functions only run on subsets of the data. This is called "grouping".
-
-For instance:
+The actual error of g_final can be estimated by imagining tons of future observations:
 
 ```{r}
-diamonds %>%
-  group_by(color) #nothing happened... this just is a directive to dplyr to do things a bit differently now
-diamonds %>%
-  group_by(color) %>%
-  mutate(price_rank_within_color = dense_rank(price)) #creates a new feature based on running the feature only within group
-diamonds %>%
-  group_by(color) %>%
-  mutate(avg_price_for_color = mean(price)) #creates a new feature based on running the feature only within group
+y_hat_g_final = predict(g_final_mod, data.frame(x = x_hidden))
+gen_error_true = sd(y_hidden - y_hat_g_final)
+gen_error_true
 ```
 
-How do you summarize data within group?
+The model $g$ can vary quite a bit as we subsample $\mathbb{D}$ which is what happens when you do train-test splits. It varies a lot because there is large misspecification error. If the model was correctly specified, the results of everything that follows will be less impressive. But in the real world - is your model ever correctly specified? is $f \in \mathcal{H}$?? NO. So this is more realistic.
+
+Now let's let K be small. Let K = 2 meaning even 50-50 split of test and train.
 
 ```{r}
-diamonds %>%
-  group_by(color) %>%
-  summarize(avg_price = mean(price)) #where did all the other columns go???
-diamonds %>%
-  group_by(color) %>%
-  summarize(avg_price = mean(price), sd_price = sd(price), count = n()) #where did all the other columns go???
-diamonds %>%
-  group_by(color) %>%
-  summarize(avg_price = mean(price), avg_carat = mean(carat)) #where did all the other columns go???
-diamonds %>%
-  group_by(color) %>%
-  summarize(min_price = min(price), med_price = median(price), max_price = max(price))
+K = 2
+prop_train = (K - 1) / K
+n_train = round(prop_train * n)
+set.seed(197)
+index_train = sample(1 : n, n_train, replace = FALSE)
+index_test = setdiff(1 : n, index_train)
+pacman::p_load(testthat)
+expect_equal(sort(c(index_test, index_train)), 1:n)
+
+x_train = x[index_train]
+y_train = y[index_train]
+Dtrain = data.frame(x = x_train, y = y_train)
+x_test = x[index_test]
+y_test = y[index_test]
+
+g_mod = lm(y ~ ., Dtrain)
+y_hat_g = predict(g_mod, data.frame(x = x_test))
+g_s_e = sd(y_test - y_hat_g)
+g_s_e
 ```
 
-Putting it all together: ususally you're doing this manipulation get the dataset you want. Usually you're editing the dataset for real. Let's make a copy first:
+This makes a lot of sense. Less data to train on = more error. How about if K is large. Let's say $K = n / 2$ meaning n_train = 48 and n_test = 2.
 
 ```{r}
-diamonds2 = diamonds
+K = n / 2
+prop_train = (K - 1) / K
+n_train = round(prop_train * n)
+set.seed(1409)
+index_train = sample(1 : n, n_train, replace = FALSE)
+index_test = setdiff(1 : n, index_train)
+pacman::p_load(testthat)
+expect_equal(sort(c(index_test, index_train)), 1:n)
+
+x_train = x[index_train]
+y_train = y[index_train]
+Dtrain = data.frame(x = x_train, y = y_train)
+x_test = x[index_test]
+y_test = y[index_test]
+
+g_mod = lm(y ~ ., Dtrain)
+y_hat_g = predict(g_mod, data.frame(x = x_test))
+g_s_e = sd(y_test - y_hat_g)
+g_s_e
 ```
 
-We first note that if we want to overwrite we can do:
+This also makes sense. More data to train on = less error but still more error than all the data.
+
+However, I lied to you. You see those seeds? I cooked up examples to make things work like the way your intuition says. In reality, there is massive variance and another big problem with this whole setup which I'll explain later. Let's run the simulation with these two K values many times.
 
 ```{r}
-diamonds2 = diamonds2 %>%
-  select(-x, -y, -z) %>%
-  filter(carat < 0.5)
+Nsim_per_K = 2000
+Kuniqs = c(2, n / 2)
+num_Kuniqs = length(Kuniqs)
+Ks = rep(Kuniqs, Nsim_per_K)
+results = data.frame(s_e = rep(NA, Nsim_per_K * num_Kuniqs), K = rep(NA, Nsim_per_K * num_Kuniqs))
+for (i in 1 : length(Ks)){
+  K = Ks[i]
+  prop_train = (K - 1) / K
+  n_train = round(prop_train * n)
+  index_train = sample(1 : n, n_train, replace = FALSE)
+  index_test = setdiff(1 : n, index_train)
+  expect_equal(sort(c(index_test, index_train)), 1:n)
+  
+  x_train = x[index_train]
+  y_train = y[index_train]
+  Dtrain = data.frame(x = x_train, y = y_train)
+  x_test = x[index_test]
+  y_test = y[index_test]
+  
+  g_mod = lm(y ~ ., Dtrain)
+  y_hat_g = predict(g_mod, data.frame(x = x_test))
+  g_s_e = sd(y_test - y_hat_g)
+  results[i, ] = c(g_s_e, K)
+}
 ```
 
-Or we can use a mutate operation that reads and writes simultaneously:
+Now let's see what the distributions look like:
 
 ```{r}
-pacman::p_load(magrittr)
-diamonds2 = diamonds
-diamonds2 %<>%
-  select(-x, -y, -z) %>%
-  filter(carat < 0.5) %>%
-  arrange(carat, cut, color)
-diamonds2
+#don't worry about the following code... we will learn dplyr later...
+pacman::p_load(dplyr)
+results = results %>%
+  group_by(K) %>%
+  mutate(Kavg = mean(s_e))
+
+sim_plot = ggplot(results) + 
+  aes(x = s_e) +
+  geom_density(aes(fill = factor(K)), alpha = 0.3) + 
+  xlim(0, NA) + 
+  geom_vline(data = results, aes(xintercept = Kavg, color = factor(K)), size = 2)
+sim_plot
 ```
 
-This is as far as we can go with dplyr right now given that this dataset doesn't have datetime information, some duplication among rows, missing data and given that there's not multiple dataframes. We will return to dplyr under these situations in the future.
+The main takeaways are
 
-Let's now fulfill a promise:
+(1) the std err of generalization error estimate is much lower for low K than high K
 
-# Log transformation Reprise
+With high K, the test set is small meaning the estimate has high variance; with low K, the test set is large meaning you can measure it with low variance.
 
-Last time we looked at `log(price)`, we left out a critical first step - examine the univariate data!
+(2) the average of generalization error estimate is lower for high K than low K
+
+With high K, the training set is large meaning $g$ is closer to g_final and thus has higher expected accuracy; with low K, the training set is small meaning $g$ is further from g_final and thus has lower expected accuracy.
+
+Thus, the tradeoff is bias vs. variance. There are many similar tradeoffs in statistics. We will see one later when we do machine learning.
+
+Is the estimates accurate for what we really care about? The generalization error of g_final?
 
 ```{r}
-ggplot(diamonds) + geom_histogram(aes(price), binwidth = 200)
-mean(diamonds$price)
-sd(diamonds$price)
+sim_plot + 
+  geom_vline(xintercept = gen_error_true, col = "purple", size = 1) +xlim(c(3,4))
 ```
 
-Look at the long tail here. Popular wisdom says to log this type of distribution as a log transform on the y variable would possible make the model more linear in x. It would be easier to catch the long tail. This is "craft lore" or a "trick of the trade". Let's take a look at the distributiona after logging:
+The answer is NO! Remember, g_final's error should be lower than both averages since it uses all the data.
+
+So what happened? Simple... we are mixing apples and oranges. We calculated that blue bar by looking at one million future observations. We calculated the red and blue distributions by looking at our data only which is a random realization of many such datasets!
+
+To show that this is the case, go back and change the seed in the first chunk and rerun. You'll see a different blue bar.
+
+What is the main takeaway? K matters because it induces a tradeoff. It shouldn't be too large or too small (as we believe at the moment). And, generalization error estimation is very variable in low n. To see this, go back and increase n.
+
+## Reducing variance with Cross Validation (i.e. K-fold CV)
+
+We saw previous there was a lot of variance in generalization error estimation. We can reduce some of this variance by using a very simple trick. We can rotate the train-test split so that each observation will be in the test set once. How many times is this done? K. Now we see the reason for the definition of K as it tells you how many times you validate. Why is it called "cross"? Because the training set crosses over as it does the rotation. Each observation is inside a training set K-1 times. This point will become important later. Why is it called K-fold? Because a fold is one set of training-test and there are K unique folds during the whole procedure.
+
+How does this work? Well, let's say K=10, a typical value. This means in each "fold", 90% of the data is in the training set and 10% of the data is in the test set. As we run through the K folds, we train a model on the training set and predict on the test set and compute oos residuals We aggregate those oos residuals over the folds to result in n oos residuals. We then run our error metric on all n.
+
+Let's begin with the dataset from the previous demo:
 
 ```{r}
-ggplot(diamonds) + geom_histogram(aes(log(price)), binwidth = 0.01)
+n = 50
+xmin = 0
+xmax = 4
+set.seed(1984)
+x = runif(n, xmin, xmax)
+y = 2 + 3 * x^2 + rnorm(n, 0, 0.8)
+D = data.frame(x = x, y = y)
 ```
 
-Some strange artifacts appear. Why the gap? Why is it "cut" at a maximum. These are questions to ask the one who collected the data.
-
-Let's see if we get anywhere with this:
+Here is some code that will create the folds by specifying the K=10 test sets by index. The training sets can then be found by the set difference function.
 
 ```{r}
-lm_y = lm(price ~ ., diamonds)
-lm_ln_y = lm(log(price) ~ ., diamonds)
-summary(lm_y)$r.squared
-summary(lm_ln_y)$r.squared
-summary(lm_y)$sigma
-summary(lm_ln_y)$sigma
-``` 
-
-Did we find a real use-case of $R^2$ finally?? Yes... it is a good arbiter of comparisons as it is scale invariant unlike RMSE.
-
-Be careful when you use $g$ after logging, you will have to exponentiate the result. This is known to create bias because $E[Y]$ is different from $exp(E[ln(y)])$, but don't worry too much about this "bias" as it hardly matters practically speaking since it is only "biased" if the linear model is correct in an absolute sense. And when on Earth is any model absolutely correct?
-
-```{r}
-predict(lm_y, diamonds[12345, ])
-predict(lm_ln_y, diamonds[12345, ])
-exp(predict(lm_ln_y, diamonds[12345, ]))
+K = 10
+set.seed(1984)
+temp = rnorm(n)
+observation_folds = cut(temp, breaks = quantile(temp, seq(0, 1, length.out = K + 1)), include.lowest = TRUE, labels = FALSE)
+table(observation_folds)
 ```
 
-
-If you like this stuff, there are a whole bunch of transformations out there that are even cooler than the natural log. Some of this may be covered in 369 / 633. Let us use the log going forward:
-
-```{r}
-diamonds %<>%
-  mutate(price = log(price))
-```
-
-Let's look at price by length of diamond.
+We now do our first cross validation of the linear model.
 
 ```{r}
-ggplot(diamonds, aes(x = x, y = price)) + 
-  geom_point()
+oos_cv_residuals = array(NA, n)
+for (k in 1 : K){
+  index_test = which(observation_folds == k)
+  index_train = setdiff(1 : n, index_test)
+  
+  x_train = x[index_train]
+  y_train = y[index_train]
+  Dtrain = data.frame(x = x_train, y = y_train)
+  x_test = x[index_test]
+  y_test = y[index_test]
+  
+  g_mod = lm(y ~ ., Dtrain)
+  y_hat_g = predict(g_mod, data.frame(x = x_test))
+  oos_cv_residuals[index_test] = y_test - y_hat_g
+}
+
+sd(oos_cv_residuals)
 ```
 
-Besides the non-linear relationship, what else do you see? Mistakes in the dataset! Can a real diamond have zero length?? Yes. This is the real world. There are mistakes all the time.
-
-Let's kill it! How many are we dealing with here?
+How does this CV error look over K? What are all the valid K's? If you want to keep the sizes the same, any factorization of n except the trivial n = 1 * n. There's of course a package for this.
 
 ```{r}
-diamonds %>% 
-  filter(x == 0) %>% 
-  nrow
+pacman::p_load(numbers)
+divisors(n)
 ```
 
+Now we compute the errors over K:
 
 ```{r}
-diamonds %<>% 
-  filter(x > 0)
+Kuniqs = setdiff(divisors(n), 1)
+results = data.frame(K = Kuniqs, s_e = NA)
+
+set.seed(1984)
+for (K in Kuniqs){
+    temp = rnorm(n)
+    observation_folds = cut(temp, breaks = quantile(temp, seq(0, 1, length.out = K + 1)), include.lowest = TRUE, labels = FALSE)
+  oos_residuals = array(NA, n)
+  for (k in 1 : K){
+    index_test = which(observation_folds == k)
+    index_train = setdiff(1 : n, index_test)
+    
+    x_train = x[index_train]
+    y_train = y[index_train]
+    Dtrain = data.frame(x = x_train, y = y_train)
+    x_test = x[index_test]
+    y_test = y[index_test]
+    
+    g_mod = lm(y ~ ., Dtrain)
+    y_hat_g = predict(g_mod, data.frame(x = x_test))
+    oos_residuals[index_test] = y_test - y_hat_g
+  }
+  
+  results[results$K == K, "s_e"] = sd(oos_residuals)
+}
+results
 ```
 
-What's the deal with the x variable now?
+Much less variable seemingly. There is still an effect of the one random fold. Let's do this many times and look at the distribution just like before.
 
 ```{r}
-diamonds$x %>% summary
+Nsim_per_K = 500
+num_Kuniqs = length(Kuniqs)
+Ks = rep(Kuniqs, Nsim_per_K)
+results = data.frame(s_e = rep(NA, Nsim_per_K * num_Kuniqs), K = rep(NA, Nsim_per_K * num_Kuniqs))
+
+
+set.seed(1984)
+for (i in 1 : length(Ks)){
+  K = Ks[i]
+  temp = rnorm(n) #this makes it a different fold each time
+  observation_folds = cut(temp, breaks = quantile(temp, seq(0, 1, length.out = K + 1)), include.lowest = TRUE, labels = FALSE)
+  oos_residuals = array(NA, n)
+  for (k in 1 : K){
+    index_test = which(observation_folds == k)
+    index_train = setdiff(1 : n, index_test)
+    
+    x_train = x[index_train]
+    y_train = y[index_train]
+    Dtrain = data.frame(x = x_train, y = y_train)
+    x_test = x[index_test]
+    y_test = y[index_test]
+    
+    g_mod = lm(y ~ ., Dtrain)
+    y_hat_g = predict(g_mod, data.frame(x = x_test))
+    oos_residuals[index_test] = y_test - y_hat_g
+  }
+  results[i, ] = c(sd(oos_residuals), K)
+}
 ```
 
-How good does a best guess linear relationship do?
+Now we plot it:
 
 ```{r}
-mod = lm(price ~ x, diamonds)
-b = coef(mod)
-b
-summary(mod)$r.squared
-summary(mod)$sigma
+#don't worry about the following code... we will learn dplyr later...
+pacman::p_load(dplyr)
+results = results %>%
+  group_by(K) %>%
+  mutate(Kavg = mean(s_e))
+results_sub = results %>% filter(K %in% c(2,25))
+ggplot(results_sub) + 
+  aes(x = s_e) +
+  geom_density(aes(fill = factor(K)), alpha = 0.3) + 
+  # xlim(0, NA) +
+  xlim(3, 4.5) +
+  geom_vline(data = results, aes(xintercept = Kavg, color = K), size = 2) +
+  geom_vline(xintercept = gen_error_true, col = "purple", size = 1)
 ```
 
-Again we got some bad extrapolation going on. Let's see the best fit line $g(x)$ visually:
+Believe it or not, this is a significant improvement in variability than before. There is greatly improved tightness for high K. Seemingly with K-fold CV, you can be more confident to use high K because it is decreasing the variance in the estimate. High K also reduces bias.
+
+Admittedly, I don't know the properties of CV estimates as well as I should. Thus, there will be only procedural questions on the next exam. I do know that selecting K "optimally" for general datasets is an open question.
+
+There is one other nice thing about having folds, you can estimate the standard error in your generalization estimate by pretending you have K iid samples and pretending the normal theory applies. For example, let's say K = 5. Instead of aggregating all residuals, we leave them separate and get K = 5 difference estimates for generalization error.
 
 ```{r}
-ggplot(diamonds, aes(x = x, y = price)) + geom_point() + 
-  geom_abline(intercept = b[1], slope = b[2], col = "green")
+K = 5
+set.seed(1984)
+temp = rnorm(n)
+observation_folds = cut(temp, breaks = quantile(temp, seq(0, 1, length.out = K + 1)), include.lowest = TRUE, labels = FALSE)
+
+oos_s_e_s = array(NA, K)
+for (k in 1 : K){
+  index_test = which(observation_folds == k)
+  index_train = setdiff(1 : n, index_test)
+  
+  x_train = x[index_train]
+  y_train = y[index_train]
+  Dtrain = data.frame(x = x_train, y = y_train)
+  x_test = x[index_test]
+  y_test = y[index_test]
+  
+  g_mod = lm(y ~ ., Dtrain)
+  y_hat_g = predict(g_mod, data.frame(x = x_test))
+  oos_s_e_s[k] = sd(y_test - y_hat_g)
+}
+
+avg_s_e = mean(oos_s_e_s)
+s_s_e = sd(oos_s_e_s)
+avg_s_e
+s_s_e
+#approx 95% CI
+c(avg_s_e - 2 * s_s_e, avg_s_e + 2 * s_s_e)
+gen_error_true
 ```
 
-Let's log-linearize it and see how we do.
+Although this is technically nonsense since they're not iid samples since the training set is crossed over containing mostly the same observations, at least it's something. In the above example, we've managed to capture the true generalization error.
 
-```{r}
-log_linear_mod = lm(log(price) ~ x, diamonds)
-b = coef(log_linear_mod)
-b
-ggplot(diamonds, aes(x = x, y = log(price))) + 
-  geom_point() + 
-  geom_abline(intercept = b[1], slope = b[2], col = "green")
-```
+I believe confidence intervals for generalization error is an open problem or maybe proved that you can't find them in general situations.
 
-How did we do? Ensure it's apples-apples.
-
-```{r}
-log_y_hat = log_linear_mod$fitted.values
-y_hat = exp(log_y_hat)
-e = diamonds$price - y_hat
-SSE = sum(e^2)
-SST = sum((diamonds$price - mean(diamonds$price))^2)
-Rsq = 1 - sum(e^2) / SST
-Rsq
-RMSE = sqrt(SSE / (nrow(diamonds) - 2))
-RMSE
-```
-
-Still not better. Log-log?
-
-```{r}
-log_log_linear_mod = lm(log(price) ~ log(x), diamonds)
-b = coef(log_log_linear_mod)
-b
-ggplot(diamonds, aes(x = log(x), y = log(price))) + 
-  geom_point() + 
-  geom_abline(intercept = b[1], slope = b[2], col = "green")
-```
-
-Let's see.
-
-```{r}
-log_y_hat = log_log_linear_mod$fitted.values
-y_hat = exp(log_y_hat)
-e = diamonds$price - y_hat
-SSE = sum(e^2)
-SST = sum((diamonds$price - mean(diamonds$price))^2)
-Rsq = 1 - sum(e^2) / SST
-Rsq
-RMSE = sqrt(SSE / (nrow(diamonds) - 2))
-RMSE
-```
-
-We did it.
-
-But we brought up a whole bunch of issues which we shall explore next class.
-
-
-
-
-# Cross Validation
-
-This code gets the indices in a clever way:
+Here's a real data example with the `diamonds` dataset.
 
 ```{r}
 K = 5
 
 set.seed(2000)
 temp = rnorm(nrow(diamonds))
-folds_vec = cut(temp, breaks = quantile(temp, seq(0, 1, length.out = K + 1)), include.lowest = T, labels = F)
-```
+observation_folds = cut(temp, breaks = quantile(temp, seq(0, 1, length.out = K + 1)), include.lowest = TRUE, labels = FALSE)
 
-Now let's fit a model on this $K$ times:
-
-```{r}
 all_idx = 1 : nrow(diamonds)
 s_e_s = array(NA, K)
-y_test = array(NA, nrow(diamonds))
+y_hat_g = array(NA, nrow(diamonds))
 for (k in 1 : K){
-  test_idx = all_idx[folds_vec == k]
-  train_idx = setdiff(all_idx, test_idx)
-  #sort(c(train_idx, test_idx))
-  mod = lm(price ~ ., diamonds[train_idx, ])
-  y_test[test_idx] = predict(mod, diamonds[test_idx, ])
-  s_e_s[k] = sqrt(sum((diamonds[test_idx, ]$price - y_test[test_idx])^2) / length(test_idx))
+  index_test = which(observation_folds == k)
+  index_train = setdiff(1 :  nrow(diamonds), index_test)
+  mod = lm(price ~ ., diamonds[index_train, ])
+  y_hat_g[index_test] = predict(mod, diamonds[index_test, ])
+  s_e_s[k] = sd(diamonds[index_test, ]$price - y_hat_g[index_test])
 }
 s_e_s
 mean(s_e_s)
 sd(s_e_s)
 
 #aggregate result
-sqrt(sum((diamonds$price - y_test)^2) / nrow(diamonds))
+sd(diamonds$price - y_hat_g)
 ```
 
-# MLR library for CV
-
-"Machine Learning in R" (mlr) is a very popular R library that makes it very simple to build models, do validation, etc. They are actually undergoing a full rewrite now so expect the new version to be even better.
-
-```{r}
-pacman::p_load(mlr)
-```
-
-It splits the modeling task into conceptual pieces. The most basic pieces are:
-
-* Instantiate a "task". This consists of supplying a dataframe, identifying a variable that is the output and the type of predictions to be made.
-* Instantiate a "learner". This consists of $\mathcal{A}$ and $\mathcal{H}$. For example: OLS with all raw features.
-* Instantiate a type of validation. For example: 5-fold CV resampling
-* Execute
-
-Here's what this would look like for our example we just did:
-
-```{r}
-modeling_task = makeRegrTask(data = diamonds, target = "price") #instantiate the task
-algorithm = makeLearner("regr.lm") #instantiate the OLS learner algorithm on the diamonds dataset and set y = price
-validation = makeResampleDesc("CV", iters = 5) #instantiate the 5-fold CV
-resample(algorithm, modeling_task, validation) #execute
-```
-
-Let's correct this error and do it again:
-
-```{r}
-diamonds %<>%
-  mutate(cut = factor(cut, ordered = FALSE), color = factor(color, ordered = FALSE), clarity = factor(clarity, ordered = FALSE))
-modeling_task = makeRegrTask(data = diamonds, target = "price") #instantiate the task
-res = resample(algorithm, modeling_task, validation, measures = list(rmse)) #execute
-res
-mean(res$measures.test$rmse)
-sd(res$measures.test$rmse)
-```
-
-There are a lot of learners that do regression:
-
-```{r}
-View(listLearners("regr"))
-```
-
-We will return to `mlr` later after we cover some more concepts.
-
-
-# Model Selection
-
-We have now covered non-linearities (e.g. polynomial terms) and interactions. A new complication now clearly emerges. If I have $p$ predictors, there are many linear least squares models I can build (considering non-linear least squares models makes the space of models even larger!!)
-
-For instance, here are a bunch of models:
-
-```{r}
-mod1 = lm(price ~ carat + depth, diamonds) #using a subset of the features
-mod2 = lm(price ~ ., diamonds) #using a subset of the features
-mod3 = lm(price ~ poly(carat, 2) + poly(depth, 2), diamonds) #using some polynomial terms
-mod4 = lm(price ~ . * ., diamonds) #using all interactions
-coef(mod1)
-coef(mod2)
-coef(mod3)
-coef(mod4)
-```
-
-Which model is "best"? 
-
-This is one of the most fundamental problems in statistics, and possibly all of science! 
-
-In class, we discussed validation via dividing $\mathbb{D}$ into (a) a training set and a (b) testing set. Now, we will further divide the training set into (a) a sub-training set and a (b) selection set and we still have the (c) test set. 
-
-The total training set together will fit a model and testing will estimate future performance. But within the total training set, we'll use an elaborate algorithim: we'll fit many models and take the best one. That's the "master algorithm".
-
-We'll make the selection set and the test set the same size but we don't have to. First split up the data:
-
-```{r}
-n = nrow(diamonds)
-K = 5
-test_indices = sample(1 : n, size = n * 1 / K)
-master_train_indices = setdiff(1 : n, test_indices)
-select_indices = sample(master_train_indices, size = n * 1 / K)
-train_indices = setdiff(master_train_indices, select_indices)
-rm(master_train_indices)
-
-#make sure we did this right:
-pacman::p_load(testthat)
-expect_equal(1 : n, sort(c(train_indices, select_indices, test_indices)))
-
-diamonds_train = diamonds[train_indices, ]
-diamonds_select = diamonds[select_indices, ]
-diamonds_test = diamonds[test_indices, ]
-
-rm(test_indices, select_indices, train_indices)
-```
-
-Now, fit all models and select the best one:
-
-```{r}
-mod1 = lm(price ~ carat + depth, diamonds_train) #using a subset of the features
-mod2 = lm(price ~ ., diamonds_train) #using a subset of the features
-mod3 = lm(price ~ poly(carat, 2) + poly(depth, 2), diamonds_train) #using some polynomial terms
-mod4 = lm(price ~ . * ., diamonds_train) #using all interactions
-```
-
-Now predict on the selection set and look at the oos $s_e$, and select the "best" model
-
-```{r}
-yhat_select_mod1 = predict(mod1, diamonds_select)
-yhat_select_mod2 = predict(mod2, diamonds_select)
-yhat_select_mod3 = predict(mod3, diamonds_select)
-yhat_select_mod4 = predict(mod4, diamonds_select)
-y_select = diamonds_select$price #the true prices
-
-s_e_s = c(
-  sd(yhat_select_mod1 - y_select), 
-  sd(yhat_select_mod2 - y_select), 
-  sd(yhat_select_mod3 - y_select), 
-  sd(yhat_select_mod4 - y_select)
-)
-names(s_e_s) = paste("mod", 1 : 4, sep = "")
-s_e_s
-#find the minimum
-names(which.min(s_e_s))
-```
-
-Which are overfit? Which are underfit? Were these models "poor choices"?
-
-Can we go back and fit some more models? 
-
-Yes - as long as we don't open the "lockbox" of the test set. Let's look at one more model. An expansion of the best of the previous 4 models now with a couple interactions we are convinced are real plus a couple of non-linear terms:
-
-```{r}
-mod5 = lm(price ~ 
-            . + 
-            carat * color + 
-            carat * depth + 
-            I(carat^2) +
-            I(depth^2),
-          diamonds_train) 
-
-yhat_select_mod5 = predict(mod5, diamonds_select)
-
-s_e_s = c(s_e_s, sd(yhat_select_mod5 - y_select))
-names(s_e_s)[5] = "mod5"
-s_e_s
-#find the minimum
-names(which.min(s_e_s))
-```
-
-We can go further and fit more and more models but we should always be careful that we don't fit too many as we may optimize to the selection set. Here, we are lucky since the selection set is large (~11,000 observations) so this is not too much of a fear.
-
-But you can see the problem - how can we build a good model??
-
-The answer to this is non-parametric regression. But first, we will cover two other important topics before we get there.
-
-Let us return and complete the exercise by now declaring we are done modeling and we are going to ship model 5. Let us get a conservative estimate of its performance:
-
-```{r}
-yhat_test_mod5 = predict(mod5, diamonds_test)
-y_test = diamonds_test$price #the true prices
-sd(yhat_test_mod5 - y_test)
-```
-
-About the same as the selection estimate --- we did not overfit too much to the selection set.
-
-At this point the lockbox is open and we can never return (if we are honest, of course - many people in this business lie so beware).
-
-Now we can build production model 5 with all data to ship:
-
-```{r}
-mod_final = lm(price ~ 
-            . + 
-            carat * color + 
-            carat * depth + 
-            I(carat^2) +
-            I(depth^2),
-          diamonds)
-```
-
-No evaluation is done on the final model. It is only used to predict future diamonds' prices.
-
-Two improvements using CV to the above:
-
-* To reduce variance in the selection process, you make a CV of the selection set. 
-* To reduce variance in the testing process, you make an outer CV of the test set. This is a lot more coding!
-
-# MLR for Linear Model Selection
-
-Not as nice as I would've liked. But I've figured it out by creating my own custom code. Still better then doing two loops of CV yourself! 
-
-First, we create the task:
-
-```{r}
-modeling_task = makeRegrTask(data = diamonds, target = "price") #instantiate the task
-```
-
-We now pick the linear models we wish to investigate. Each entry is the r.h.s of the formula that is passed to lm.
-
-```{r}
-ALL_LINEAR_MODELS = c(
-  ".", 
-  "carat * .", 
-  ". * ."
-  )
-```
-
-Now we create a new learner which is a wrapper for the linear model with a custom formula. We need to specify learning parameters, a training function (build g) and a predict function. Then we need to add theese functions to the namespace in a way mlr understands.
-
-```{r}
-makeRLearner.regr.custom_ols = function() {
-  makeRLearnerRegr(
-    cl = "regr.custom_ols",
-    package = "base",
-    par.set = makeParamSet(
-      makeDiscreteLearnerParam(id = "formula_rhs", default = ".", values = ALL_LINEAR_MODELS)
-    ),
-    properties = c("numerics", "factors", "ordered"),
-    name = "Custom OLS with a Formula",
-    short.name = "custom_ols"
-  )
-}
-
-trainLearner.regr.custom_ols = function(.learner, .task, .subset, .weights = NULL, ...){
-  formula = as.formula(paste(
-    getTaskDesc(.task)$target,
-    "~",
-    list(...)$formula_rhs #this is passed in the ... as an extra argment
-  ))
-  
-  lm(formula, data = getTaskData(.task, .subset))
-}
-
-predictLearner.regr.custom_ols = function (.learner, .model, .newdata, ...){
-    predict(.model$learner.model, newdata = .newdata, ...)
-}
-
-registerS3method("makeRLearner", "regr.custom_ols", makeRLearner.regr.custom_ols)
-registerS3method("trainLearner", "regr.custom_ols", trainLearner.regr.custom_ols)
-registerS3method("predictLearner", "regr.custom_ols", predictLearner.regr.custom_ols)
-```
-
-Now we create the "inner loop". Here, we cross validate over the different models. We do this by specifying a "tune wrapper" since technically each formula is considered a tuning paramter / hyperparameter the linear model on this task.
-
-```{r}
-all_models = makeParamSet(
-  makeDiscreteParam(id = "formula_rhs", default = ".", values = ALL_LINEAR_MODELS)
-)
-inner_loop = makeResampleDesc("CV", iters = 3)
-lrn = makeTuneWrapper("regr.custom_ols", #instantiate the OLS learner algorithm
-        resampling = inner_loop, 
-        par.set = all_models, 
-        control = makeTuneControlGrid(), 
-        measures = list(rmse))
-```
-
-We now create the outer loop and execute:
-
-```{r}
-outer_loop = makeResampleDesc("CV", iters = 5)
-r = resample(lrn, modeling_task, resampling = outer_loop, extract = getTuneResult, measures = list(rmse))
-```
-
-Now we look at the results a bunch of different ways:
-
-```{r}
-r #overall estimate of oos error of the whole procedure if it were used on all of $\mathbb{D}$
-print(getNestedTuneResultsOptPathDf(r)) #results of each inner validation over all outer iterations
-r$extract #"winning" model for each outer iteration
-```
-
-See https://mlr.mlr-org.com/articles/tutorial/nested_resampling.html? for info on inner and outer loop CV.
-
-# MLR for Hyperparameter Selection
-
-We load the breast cancer dataset from earlier in the class.
-
-```{r}
-cancer = MASS::biopsy %>%
-  select(-ID) %>% #drop the useless ID column
-  na.omit #drop all rows that are missing
-modeling_task = makeClassifTask(data = cancer, target = "class") #instantiate the task
-```
-
-We now create the SVM using package `e1071` which plugs nicely into `mlr`.
-
-```{r}
-pacman::p_load(e1071)
-algorithm = makeLearner("classif.svm", kernel = "linear")
-```
-
-Now we create the inner loop where we try many different values of the hyperparameter.
-
-```{r}
-all_lambdas = 2^(seq(-10, 10, by = 0.5))
-all_hyperparams = makeParamSet(
-  makeDiscreteParam(id = "cost", default = 1, values = all_lambdas)
-)
-inner = makeResampleDesc("CV", iters = 3)
-lrn = makeTuneWrapper("classif.svm", 
-                      resampling = inner, 
-                      par.set = all_hyperparams, 
-                      control = makeTuneControlGrid(),
-                      measures = list(mmce))
-length(all_lambdas)
-```
-
-Now we create the outer loop and execute
-
-```{r}
-outer = makeResampleDesc("CV", iters = 5)
-r = resample(lrn, modeling_task, 
-            resampling = outer, 
-            extract = getTuneResult,
-            measures = list(mmce))
-```
-
-Now we look at the results a bunch of different ways:
-
-```{r}
-r #overall estimate of oos error of the whole procedure if it were used on all of $\mathbb{D}$
-print(getNestedTuneResultsOptPathDf(r)) #results of each inner validation over all outer iterations
-r$extract #"winning" model for each outer iteration
-```
-
-
-# Forward Stepwise Linear Model Construction
-
-Let's look at the diamonds data
-
-```{r}
-pacman::p_load(ggplot2)
-data(diamonds)
-diamonds$cut = factor(as.character(diamonds$cut))
-diamonds$color = factor(as.character(diamonds$color))
-diamonds$clarity = factor(as.character(diamonds$clarity))
-```
-
-What we're doing will be highly computational, so let's take a random sample of the dimaonds in $\mathbb{D}$:
-
-```{r}
-Nsamp = 1300
-train_indices = sample(1 : nrow(diamonds), Nsamp)
-diamonds_train = diamonds[train_indices, ]
-```
-
-Let's built a model with all second-order interactions
-
-```{r}
-mod = lm(price ~ . * . * ., diamonds_train)
-```
-
-How many variables is this? And what does it look like?
-
-```{r}
-length(coef(mod))
-coef(mod)[1000 : 1100]
-```
-
-Remember we overfit just using first order interactions? We'll certainly overfit using first-order interactions AND second order interactions
-
-```{r}
-summary(mod)$r.squared
-sd(summary(mod)$residuals)
-```
-
-Is that believable? Well... let's try it on the another 10,000 we didn't see...
-
-```{r}
-test_indices = sample(setdiff(1 : nrow(diamonds), train_indices), Nsamp)
-diamonds_test = diamonds[test_indices, ]
-y_hat_test = predict(mod, diamonds_test)
-y_test = diamonds_test$price
-e_test = y_test - y_hat_test
-1 - sum((e_test)^2) / sum((y_test - mean(y_test))^2)
-sd(e_test)
-```
-
-VERY negative oos $R^2$ --- why? What should that say about the relationship between $s_e$ and $s_y$?
-
-```{r}
-sd(y_test)
-sd(e_test) / sd(y_test)
-```
-
-This is not only "overfitting"; it is an absolute trainwreck! This means you can do better using the null model (average of y) instead of this model.
-
-So let us employ stepwise to get a good model. We need predictors to start with. How about `. * . * .` --- there's nothing intrinsically wrong with this. Let's create the model matrix:
-
-```{r}
-Xmm_train = model.matrix(price ~ . * . * ., diamonds_train)
-y_train = diamonds_train$price
-p_plus_one = ncol(Xmm_train)
-
-Xmm_test = model.matrix(price ~ . * . * ., diamonds_test)
-```
-
-Now let's go through one by one and add the best one based on $s_e$ gain i.e. the best new dimension to add to project the most of the vector $y$ as possible onto the column space.
-
-```{r}
-predictor_by_iteration = c() #keep a growing list of predictors by iteration
-in_sample_ses_by_iteration = c() #keep a growing list of se's by iteration
-oos_ses_by_iteration = c() #keep a growing list of se's by iteration
-i = 1
-
-while (TRUE){
-
-  #get all predictors left to try
-  all_ses = array(NA, p_plus_one) #record all possibilities
-  for (j_try in 1 : p_plus_one){
-    if (!(j_try %in% predictor_by_iteration)){
-      Xmm_sub = Xmm_train[, c(predictor_by_iteration, j_try), drop = FALSE]
-      all_ses[j_try] = sd(lm.fit(Xmm_sub, y_train)$residuals) #lm.fit so much faster than lm! 
-    }
-  }
-  j_star = which.min(all_ses)
-  predictor_by_iteration = c(predictor_by_iteration, j_star)
-  in_sample_ses_by_iteration = c(in_sample_ses_by_iteration, all_ses[j_star])
-  
-  #now let's look at oos
-  Xmm_sub = Xmm_train[, predictor_by_iteration, drop = FALSE]
-  mod = lm.fit(Xmm_sub, y_train)
-  y_hat_test = Xmm_test[, predictor_by_iteration, drop = FALSE] %*% mod$coefficients
-  oos_se = sd(y_test - y_hat_test)
-  oos_ses_by_iteration = c(oos_ses_by_iteration, oos_se)
-  
-  cat("i = ", i, "in sample: se = ", all_ses[j_star], "oos_se", oos_se, "\n   predictor added:", colnames(Xmm_train)[j_star], "\n")
-  
-  i = i + 1
-  predictor_by_iteration
-  
-  if (i > Nsamp || i > p_plus_one){
-    break #why??
-  }
-  
-}
-```
-
-Now let's look at the patterns
-
-```{r}
-simulation_results = data.frame(
-  iteration = 1 : length(in_sample_ses_by_iteration),
-  in_sample_ses_by_iteration = in_sample_ses_by_iteration,
-  oos_ses_by_iteration = oos_ses_by_iteration
-)
-
-pacman::p_load(latex2exp)
-ggplot(simulation_results) + 
-  geom_line(aes(x = iteration, y = in_sample_ses_by_iteration), col = "red") +
-  geom_line(aes(x = iteration, y = oos_ses_by_iteration), col = "blue") + 
-  ylab(TeX("$s_e$"))
-```
-
-
-We can kind of see what the optimal model is above. If we want an exact procedure, we'd probably fit a separate smoothing regression to the oos results and analytically find the arg-minimum, $j^*$. That number will then be fed into the model matrix to create the right feature set and the final model will be produced with all the data.
-
-Can we honestly assess future performance now? No... we needed to keep a third set hanging around. This you will do for a lab exercise.
-
+Why is the $s_{s_e}$ so low? High $n$. Cross validation here was probably not even necessary.
