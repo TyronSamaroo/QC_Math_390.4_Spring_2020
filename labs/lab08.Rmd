@@ -2,17 +2,20 @@
 title: "Lab 8"
 author: "Your Name Here"
 output: pdf_document
-date: "11:59PM April 22, 2020"
+date: "2AM April 26, 2020"
 ---
 
 # Data Wrangling / Munging / Carpentry
 
-Throughout this assignment you can use either `dplyr` or `data.table` to answer but not base R.
+Throughout this assignment you can use either the `tidyverse` package suite or `data.table` to answer but not base R. You can mix `data.table` with `magrittr` piping if you wish but don't go back and forth between `tbl_df`'s and `data.table` objects.
+
+```{r}
+pacman::p_load(tidyverse, magrittr, data.table)
+```
 
 Load the `storms` dataset from the `dplyr` package and investigate it using `str` and `summary` and `head`. Which two columns should be converted to type factor? Do so below.
 
 ```{r}
-storms
 #TO-DO
 ```
 
@@ -22,6 +25,17 @@ Reorder the columns so name is first, status is second, category is third and th
 #TO-DO
 ```
 
+Find a subset of the data of storms only in the 1970's.
+
+```{r}
+#TO-DO
+```
+
+Find a subset of the data of storm observations only with category 4 and above and wind speed 100MPH and above.
+
+```{r}
+#TO-DO
+```
 
 Create a new feature `wind_speed_per_unit_pressure`.
 
@@ -54,7 +68,7 @@ Find the strongest storm by wind speed per year.
 #TO-DO
 ```
 
-For each named storm, find its maximum category, wind speed, pressure and diameters (do not allow the max to be NA).
+For each named storm, find its maximum category, wind speed, pressure and diameters. Do not allow the max to be NA (unless all the measurements for that storm were NA).
 
 ```{r}
 #TO-DO
@@ -109,7 +123,7 @@ For each storm, summarize the day in which is started in the following format "F
 #TO-DO
 ```
 
-Create a new factor variable `decile_windspeed` by binning wind speed into 10 bins and drop `wind`.
+Create a new factor variable `decile_windspeed` by binning wind speed into 10 bins.
 
 ```{r}
 #TO-DO
@@ -127,7 +141,7 @@ In `serious_storms`, merge the variables lat and long together into `lat_long` w
 #TO-DO
 ```
 
-For each category, find the average wind speed, pressure and diameters (do not count the NA's in your averaging).
+Let's return now to the original storms data frame. For each category, find the average wind speed, pressure and diameters (do not count the NA's in your averaging).
 
 ```{r}
 #TO-DO
